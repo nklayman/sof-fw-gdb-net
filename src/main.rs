@@ -26,13 +26,22 @@ fn handle_client(mut stream: TcpStream) {
                     break;
                 }
                 // Write data to fw gdb file
-                file.write(&tcp_buf[0..size]).unwrap();
+                // write_all doesn't work here because it fails on write_zero, which can happen when GDB ring buffer is full
+                let mut buf = &tcp_buf[..size];
+                while !buf.is_empty() {
+                    let count = match file.write(buf) {
+                        Ok(c) => c,
+                        Err(e) if e.kind() == io::ErrorKind::WriteZero => 0,
+                        Err(e) => panic!("Writing to fw_gdb file failed: {}", e.to_string()),
+                    };
+                    buf = &buf[count..]
+                }
             }
             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
                 // If there's no data, read from file and send any data back over TCP
                 let count = file.read(&mut gdb_buf).unwrap();
                 if count > 0 && gdb_buf[0] != b'\0' {
-                    stream.write(&gdb_buf[0..count]).unwrap();
+                    stream.write_all(&gdb_buf[0..count]).unwrap();
                 }
             }
             Err(e) => {
