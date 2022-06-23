@@ -7,7 +7,8 @@ Sample usage:
 ```bash
 # (Start on development machine)
 ssh -4 -L 4000:localhost:4000 user@ssh-target-ip # SSH into target machine and forward port
-sudo ./sof-fw-gdb-net # Run app, needs sudo to access fw_gdb file
+wget https://github.com/nklayman/sof-fw-gdb-net/releases/latest/download/sof-fw-gdb-net && chmod +x ./sof-fw-gdb-net # Download program, only do this once
+sudo ./sof-fw-gdb-net # Run program (needs sudo to access fw_gdb file)
 
 
 # In a separate terminal, on development machine
